@@ -55,10 +55,10 @@ class DbHelper{
 
   }
 
-  Future<List<Map<String,dynamic>>> fetchAllNotes() async{
+  Future<List<Map<String,dynamic>>> fetchAllNotes({String query = ""}) async{
     var db = await initDB();
 
-    List<Map<String, dynamic>> allData = await db.query(TABLE_NOTE, where: "$COLUMN_NOTE_TITLE = ?", whereArgs: ["Updated Note"]);
+    List<Map<String, dynamic>> allData = await db.query(TABLE_NOTE, where: "$COLUMN_NOTE_TITLE LIKE ? OR $COLUMN_NOTE_DESC LIKE ?", whereArgs: ["%$query%", "%$query%"]);
 
     return allData;
   }
