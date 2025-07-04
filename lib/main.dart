@@ -1,9 +1,17 @@
+import 'package:db_exp_395/db_helper.dart';
+import 'package:db_exp_395/db_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'home_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => DBProvider(dbHelper: DbHelper.getInstance()),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -36,4 +44,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

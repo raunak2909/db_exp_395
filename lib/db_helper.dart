@@ -10,6 +10,7 @@ class DbHelper{
   DbHelper._();
   /// singleton
   static DbHelper getInstance() => DbHelper._();
+  //static DbHelper mInstance = DbHelper._();
 
   Database? mDB;
 
