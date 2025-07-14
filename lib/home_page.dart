@@ -1,7 +1,10 @@
 import 'package:db_exp_395/add_note_page.dart';
+import 'package:db_exp_395/cubit/note_cubit.dart';
+import 'package:db_exp_395/cubit/note_state.dart';
 import 'package:db_exp_395/db_helper.dart';
 import 'package:db_exp_395/db_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +27,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     ///DbHelper dbHelper = DbHelper();
-    context.read<DBProvider>().getAllNotes();
+    //context.read<DBProvider>().getAllNotes();
+    context.read<NoteCubit>().getAllNotes();
   }
 
   @override
@@ -61,62 +65,72 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           SizedBox(height: 16),
-          Consumer<DBProvider>(
-            builder: (_, provider, __) {
-              allNotes = provider.getData();
+          BlocBuilder<NoteCubit, NoteState>(
+            builder: (_, state) {
 
-              return Expanded(
-                child: allNotes.isNotEmpty
-                    ? ListView.builder(
-                        itemCount: allNotes.length,
-                        itemBuilder: (_, index) {
-                          return Card(
-                            child: ListTile(
-                              leading: Text("${index + 1}"),
-                              title: Text(
-                                allNotes[index][DbHelper.COLUMN_NOTE_TITLE],
+              if(state is NoteLoadingState){
+                return Center(child: CircularProgressIndicator(),);
+              }
+
+              if(state is NoteErrorState){
+                return Center(child: Text(state.errorMsg),);
+              }
+
+              if(state is NoteLoadedState){
+                allNotes = state.mNotes;
+
+                return Expanded(
+                  child: allNotes.isNotEmpty
+                      ? ListView.builder(
+                    itemCount: allNotes.length,
+                    itemBuilder: (_, index) {
+                      return Card(
+                        child: ListTile(
+                          leading: Text("${index + 1}"),
+                          title: Text(
+                            allNotes[index][DbHelper.COLUMN_NOTE_TITLE],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                allNotes[index][DbHelper.COLUMN_NOTE_DESC],
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    allNotes[index][DbHelper.COLUMN_NOTE_DESC],
-                                  ),
-                                  Text(
-                                    df.format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                        int.parse(
-                                          allNotes[index][DbHelper
-                                              .COLUMN_NOTE_CREATED_AT],
-                                        ),
-                                      ),
+                              Text(
+                                df.format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                    int.parse(
+                                      allNotes[index][DbHelper
+                                          .COLUMN_NOTE_CREATED_AT],
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () async {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AddNotePage(
-                                            isUpdate: true,
-                                            id:
-                                                allNotes[index][DbHelper
-                                                    .COLUMN_NOTE_ID],
-                                            title:
-                                                allNotes[index][DbHelper
-                                                    .COLUMN_NOTE_TITLE],
-                                            desc:
-                                                allNotes[index][DbHelper
-                                                    .COLUMN_NOTE_DESC],
-                                          ),
-                                        ),
-                                      );
-                                      /*titleController.text = allNotes[index][DbHelper.COLUMN_NOTE_TITLE];
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddNotePage(
+                                        isUpdate: true,
+                                        id:
+                                        allNotes[index][DbHelper
+                                            .COLUMN_NOTE_ID],
+                                        title:
+                                        allNotes[index][DbHelper
+                                            .COLUMN_NOTE_TITLE],
+                                        desc:
+                                        allNotes[index][DbHelper
+                                            .COLUMN_NOTE_DESC],
+                                      ),
+                                    ),
+                                  );
+                                  /*titleController.text = allNotes[index][DbHelper.COLUMN_NOTE_TITLE];
                                       descController.text = allNotes[index][DbHelper.COLUMN_NOTE_DESC];
                                       showModalBottomSheet(
                                         context: context,
@@ -125,70 +139,75 @@ class _HomePageState extends State<HomePage> {
                                           id: allNotes[index][DbHelper.COLUMN_NOTE_ID],
                                         ),
                                       );*/
-                                    },
-                                    icon: Icon(Icons.edit),
-                                  ),
-                                  IconButton(
-                                    onPressed: () async {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        builder: (_) {
-                                          return Container(
-                                            padding: EdgeInsets.all(11),
-                                            height: 140,
-                                            child: Column(
-                                              children: [
-                                                Text(
-                                                  "Are you sure want to DELETE?",
-                                                  style: TextStyle(
-                                                    fontSize: 21,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 11),
+                                },
+                                icon: Icon(Icons.edit),
+                              ),
+                              IconButton(
+                                onPressed: () async {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (_) {
+                                      return Container(
+                                        padding: EdgeInsets.all(11),
+                                        height: 140,
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "Are you sure want to DELETE?",
+                                              style: TextStyle(
+                                                fontSize: 21,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(width: 11),
 
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    OutlinedButton(
-                                                      onPressed: () async {
-                                                        context
+                                            Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                              children: [
+                                                OutlinedButton(
+                                                  onPressed: () async {
+                                                    /*context
                                                             .read<DBProvider>()
                                                             .deleteNote(
                                                               id:
                                                                   allNotes[index][DbHelper
                                                                       .COLUMN_NOTE_ID],
-                                                            );
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('Yes'),
-                                                    ),
-                                                    SizedBox(width: 11),
-                                                    OutlinedButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('No'),
-                                                    ),
-                                                  ],
+                                                            );*/
+                                                    context.read<NoteCubit>().deleteNote(id: allNotes[index][DbHelper.COLUMN_NOTE_ID]);
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: Text('Yes'),
+                                                ),
+                                                SizedBox(width: 11),
+                                                OutlinedButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: Text('No'),
                                                 ),
                                               ],
                                             ),
-                                          );
-                                        },
+                                          ],
+                                        ),
                                       );
                                     },
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                  ),
-                                ],
+                                  );
+                                },
+                                icon: Icon(Icons.delete, color: Colors.red),
                               ),
-                            ),
-                          );
-                        },
-                      )
-                    : Center(child: Text("No Notes yet!!")),
-              );
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                      : Center(child: Text("No Notes yet!!")),
+                );
+              }
+
+              return Container();
+
             },
           ),
         ],

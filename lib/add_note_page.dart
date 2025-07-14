@@ -1,3 +1,4 @@
+import 'package:db_exp_395/cubit/note_cubit.dart';
 import 'package:db_exp_395/db_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -89,9 +90,11 @@ class _AddNotePageState extends State<AddNotePage> {
 
                     if(titleController.text.isNotEmpty && descController.text.isNotEmpty) {
                       if (widget.isUpdate) {
-                        context.read<DBProvider>().updateNote(title: titleController.text, desc: descController.text, id: widget.id!);
+                        //context.read<DBProvider>().updateNote(title: titleController.text, desc: descController.text, id: widget.id!);
+                        context.read<NoteCubit>().updateNote(title: titleController.text, desc: descController.text, id: widget.id!);
                       } else {
-                        context.read<DBProvider>().addNote(title: titleController.text, desc: descController.text);
+                        //context.read<DBProvider>().addNote(title: titleController.text, desc: descController.text);
+                        context.read<NoteCubit>().addNotes(title: titleController.text, desc: descController.text);
                       }
 
                       Navigator.pop(context);

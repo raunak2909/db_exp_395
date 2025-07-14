@@ -1,14 +1,16 @@
+import 'package:db_exp_395/cubit/note_cubit.dart';
 import 'package:db_exp_395/db_helper.dart';
 import 'package:db_exp_395/db_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 import 'home_page.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => DBProvider(dbHelper: DbHelper.getInstance()),
+    BlocProvider(
+      create: (context) => NoteCubit(dbHelper: DbHelper.getInstance()),
       child: const MyApp(),
     ),
   );
